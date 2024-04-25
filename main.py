@@ -1,6 +1,9 @@
-def print_hi(name):
-    print(f'Hi, {name}')
+import sys
+from PyQt5.QtWidgets import QApplication
+from Widgets.main_window import MainWindow
 
-
-if __name__ == '__main__':
-    print_hi('Hello World')
+app = QApplication(sys.argv)
+window = MainWindow()
+window.setGeometry(100, 100, 600, 400)
+window.show()
+sys.exit(app.exec_())
