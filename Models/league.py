@@ -1,7 +1,5 @@
 import uuid
 
-from Exceptions.duplicate_oid import DuplicateOid
-
 
 class League:
     def __init__(self, name):
