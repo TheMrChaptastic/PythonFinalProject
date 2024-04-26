@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QListWidget, QPushButton, QVBoxLayout, QLabel, QHBoxLayout, QInputDialog, \
     QMessageBox
 
+from Exceptions.duplicate_name import DuplicateName
 from Exceptions.duplicate_oid import DuplicateOid
 from Models.team import Team
 from Widgets.team_editor import TeamEditor
@@ -57,6 +58,8 @@ class LeagueEditor(QWidget):
                     QMessageBox.warning(self, 'Warning', 'Error saving changes.')
             except DuplicateOid:
                 QMessageBox.warning(self, 'Error', 'Team with the same ID already exists.')
+            except DuplicateName:
+                QMessageBox.warning(self, 'Error', 'Team with the same Name already exists.')
 
     def edit_team(self):
         if self.current_team_index != -1:

@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QMainWindow, QListWidget, QAction, QVBoxLayout, QLabel, QHBoxLayout, QWidget, QFileDialog, \
     QMessageBox, QInputDialog, QPushButton
 
+from Exceptions.duplicate_name import DuplicateName
+from Exceptions.duplicate_oid import DuplicateOid
 from Models.league import League
 from Widgets.league_editor import LeagueEditor
 
@@ -89,11 +91,16 @@ class MainWindow(QMainWindow):
         league_name, ok = QInputDialog.getText(self, 'Add League', 'Enter league name:')
         if ok and league_name:
             new_league = League(league_name)
-            success = self.repo.add_league(new_league)
-            if success:
-                self.league_list.addItem(new_league.name)
-            else:
-                QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+            try:
+                success = self.repo.add_league(new_league)
+                if success:
+                    self.league_list.addItem(new_league.name)
+                else:
+                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+            except DuplicateOid:
+                QMessageBox.warning(self, 'Error', 'League with the same ID already exists.')
+            except DuplicateName:
+                QMessageBox.warning(self, 'Error', 'League with the same Name already exists.')
 
     def edit_league(self):
         if self.current_league_index != -1:
@@ -119,3 +126,8 @@ class MainWindow(QMainWindow):
 
     def set_current_league(self, index):
         self.current_league_index = index
+
+    def closeEvent(self, event):
+        if self.league_editor:
+            self.league_editor.close()
+        event.accept()

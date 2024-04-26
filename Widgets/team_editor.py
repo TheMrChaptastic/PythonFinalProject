@@ -1,5 +1,7 @@
 from PyQt5.QtWidgets import QListWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QWidget, QLineEdit, QMessageBox
 
+from Exceptions.duplicate_email import DuplicateEmail
+from Exceptions.duplicate_oid import DuplicateOid
 from Models.team_member import TeamMember
 
 
@@ -55,13 +57,18 @@ class TeamEditor(QWidget):
         name = self.name_line_edit.text().strip()
         email = self.email_line_edit.text().strip()
         if name and email:
-            success = self.repo.add_member(self.league, self.team, TeamMember(name, email))
-            if success:
-                self.member_list.addItem(f"{name} <{email}>")
-                self.name_line_edit.clear()
-                self.email_line_edit.clear()
-            else:
-                QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+            try:
+                success = self.repo.add_member(self.league, self.team, TeamMember(name, email))
+                if success:
+                    self.member_list.addItem(f"{name} <{email}>")
+                    self.name_line_edit.clear()
+                    self.email_line_edit.clear()
+                else:
+                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+            except DuplicateOid:
+                QMessageBox.warning(self, 'Error', 'Member with the same ID already exists.')
+            except DuplicateEmail:
+                QMessageBox.warning(self, 'Error', 'Member with the same Email already exists.')
         else:
             QMessageBox.warning(self, 'Warning', 'Please enter both name and email.')
 
@@ -84,13 +91,16 @@ class TeamEditor(QWidget):
             if name and email:
                 self.team.members[self.current_member_index].name = name
                 self.team.members[self.current_member_index].email = email
-                success = self.repo.edit_member(self.league, self.team, self.team.members[self.current_member_index])
-                if success:
-                    selected_item.setText(f"{name} <{email}>")
-                    self.name_line_edit.clear()
-                    self.email_line_edit.clear()
-                else:
-                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+                try:
+                    success = self.repo.edit_member(self.league, self.team, self.team.members[self.current_member_index])
+                    if success:
+                        selected_item.setText(f"{name} <{email}>")
+                        self.name_line_edit.clear()
+                        self.email_line_edit.clear()
+                    else:
+                        QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+                except DuplicateEmail:
+                    QMessageBox.warning(self, 'Warning', 'Another member with the same Email already exists.')
             else:
                 QMessageBox.warning(self, 'Warning', 'Please enter both name and email.')
         else:

@@ -1,5 +1,11 @@
 import pickle
 
+from PyQt5.QtWidgets import QMessageBox
+
+from Exceptions.duplicate_email import DuplicateEmail
+from Exceptions.duplicate_name import DuplicateName
+from Exceptions.duplicate_oid import DuplicateOid
+
 
 class LeagueRepo:
     def __init__(self):
@@ -7,8 +13,10 @@ class LeagueRepo:
 
     def add_league(self, league):
         for leg in self.leagues:
-            if leg.oid == league.oid or leg.name == league.name:
-                return False
+            if leg.oid == league.oid:
+                raise DuplicateOid(league.oid)
+            if leg.name == league.name:
+                raise DuplicateName(league.name)
         self.leagues.append(league)
         return True
 
@@ -30,8 +38,10 @@ class LeagueRepo:
         for i in range(len(self.leagues)):
             if self.leagues[i].oid == league.oid:
                 for j in range(len(self.leagues[i].teams)):
-                    if self.leagues[i].teams[j].oid == team.oid or self.leagues[i].teams[j].name == team.name:
-                        return False
+                    if self.leagues[i].teams[j].oid == team.oid:
+                        raise DuplicateOid(team.oid)
+                    if self.leagues[i].teams[j].name == team.name:
+                        raise DuplicateName(team.name)
                 self.leagues[i].teams.append(team)
                 return True
         return False
@@ -60,21 +70,29 @@ class LeagueRepo:
                 for j in range(len(self.leagues[i].teams)):
                     if self.leagues[i].teams[j].oid == team.oid:
                         for u in range(len(self.leagues[i].teams[j].members)):
-                            if self.leagues[i].teams[j].members[u].oid == member.oid or self.leagues[i].teams[j].members[u].name == member.name and self.leagues[i].teams[j].members[u].email == member.email:
-                                return False
+                            if self.leagues[i].teams[j].members[u].oid == member.oid:
+                                raise DuplicateOid(member.oid)
+                            if self.leagues[i].teams[j].members[u].email == member.email:
+                                raise DuplicateEmail(member.email)
                         self.leagues[i].teams[j].members.append(member)
                         return True
         return False
 
     def edit_member(self, league, team, member):
+        member_index = -1
         for i in range(len(self.leagues)):
             if self.leagues[i].oid == league.oid:
                 for j in range(len(self.leagues[i].teams)):
                     if self.leagues[i].teams[j].oid == team.oid:
                         for u in range(len(self.leagues[i].teams[j].members)):
                             if self.leagues[i].teams[j].members[u].oid == member.oid:
-                                self.leagues[i].teams[j].members[u] = member
-                                return True
+                                member_index = u
+                            if (self.leagues[i].teams[j].members[u].oid != member.oid
+                                    and self.leagues[i].teams[j].members[u].email == member.email):
+                                raise DuplicateEmail(member.email)
+                        if member_index >= 0:
+                            self.leagues[i].teams[j].members[member_index] = member
+                            return True
         return False
 
     def delete_member(self, league, team, member):
