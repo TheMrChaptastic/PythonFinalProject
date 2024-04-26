@@ -1,12 +1,15 @@
 from PyQt5.QtWidgets import QListWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QWidget, QLineEdit, QMessageBox
 
+from Models.team_member import TeamMember
+
 
 class TeamEditor(QWidget):
-    def __init__(self, team, parent=None):
+    def __init__(self, league, team, repository, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Team Editor')
+        self.league = league
         self.team = team
-        self.members = []
+        self.repo = repository
         self.current_member_index = -1
 
         self.member_list = QListWidget()
@@ -41,20 +44,35 @@ class TeamEditor(QWidget):
         self.delete_member_button.clicked.connect(self.delete_member)
         self.update_member_button.clicked.connect(self.update_member)
 
+        self.update_members_list()
+
+    def update_members_list(self):
+        self.member_list.clear()
+        for member in self.repo.get_members(self.league, self.team):
+            self.member_list.addItem(f"{member.name} <{member.email}>")
+
     def add_member(self):
         name = self.name_line_edit.text().strip()
         email = self.email_line_edit.text().strip()
         if name and email:
-            self.member_list.addItem(f"{name} <{email}>")
-            self.name_line_edit.clear()
-            self.email_line_edit.clear()
+            success = self.repo.add_member(self.league, self.team, TeamMember(name, email))
+            if success:
+                self.member_list.addItem(f"{name} <{email}>")
+                self.name_line_edit.clear()
+                self.email_line_edit.clear()
+            else:
+                QMessageBox.warning(self, 'Warning', 'Error saving changes.')
         else:
             QMessageBox.warning(self, 'Warning', 'Please enter both name and email.')
 
     def delete_member(self):
         selected_item = self.member_list.currentItem()
         if selected_item:
-            self.member_list.takeItem(self.member_list.row(selected_item))
+            success = self.repo.delete_member(self.league, self.team, self.team.members[self.current_member_index])
+            if success:
+                self.member_list.takeItem(self.member_list.row(selected_item))
+            else:
+                QMessageBox.warning(self, 'Warning', 'Error saving changes.')
         else:
             QMessageBox.warning(self, 'Warning', 'Please select a member to delete.')
 
@@ -64,9 +82,15 @@ class TeamEditor(QWidget):
             name = self.name_line_edit.text().strip()
             email = self.email_line_edit.text().strip()
             if name and email:
-                selected_item.setText(f"{name} <{email}>")
-                self.name_line_edit.clear()
-                self.email_line_edit.clear()
+                self.team.members[self.current_member_index].name = name
+                self.team.members[self.current_member_index].email = email
+                success = self.repo.edit_member(self.league, self.team, self.team.members[self.current_member_index])
+                if success:
+                    selected_item.setText(f"{name} <{email}>")
+                    self.name_line_edit.clear()
+                    self.email_line_edit.clear()
+                else:
+                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
             else:
                 QMessageBox.warning(self, 'Warning', 'Please enter both name and email.')
         else:

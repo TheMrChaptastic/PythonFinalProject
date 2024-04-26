@@ -7,11 +7,11 @@ from Widgets.team_editor import TeamEditor
 
 
 class LeagueEditor(QWidget):
-    def __init__(self, league, parent=None):
+    def __init__(self, league, repository, parent=None):
         super().__init__(parent)
         self.setWindowTitle('League Editor')
         self.league = league
-        self.teams = []
+        self.repo = repository
         self.current_team_index = -1
         self.team_editor = None
 
@@ -42,25 +42,26 @@ class LeagueEditor(QWidget):
 
     def update_team_list(self):
         self.team_list.clear()
-        self.teams = []
-        for team in self.league.teams:
+        for team in self.repo.get_teams(self.league):
             self.team_list.addItem(team.name)
-            self.teams.append(team)
 
     def add_team(self):
         team_name, ok = QInputDialog.getText(self, 'Add Team', 'Enter team name:')
         if ok and team_name:
             try:
                 new_team = Team(team_name)
-                self.league.add_team(new_team)
-                self.update_team_list()
+                success = self.repo.add_team(self.league, new_team)
+                if success:
+                    self.update_team_list()
+                else:
+                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
             except DuplicateOid:
                 QMessageBox.warning(self, 'Error', 'Team with the same ID already exists.')
 
     def edit_team(self):
         if self.current_team_index != -1:
-            selected_league = self.teams[self.current_team_index]
-            self.team_editor = TeamEditor(selected_league)
+            selected_team = self.league.teams[self.current_team_index]
+            self.team_editor = TeamEditor(self.league, selected_team, self.repo)
             self.team_editor.show()
         else:
             QMessageBox.warning(self, 'Warning', 'Please select a league to edit.')
@@ -74,8 +75,11 @@ class LeagueEditor(QWidget):
             if reply == QMessageBox.Yes:
                 team_index = self.team_list.currentRow()
                 team = self.league.teams[team_index]
-                self.league.remove_team(team)
-                self.update_team_list()
+                success = self.repo.delete_team(self.league, team)
+                if success:
+                    self.update_team_list()
+                else:
+                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
         else:
             QMessageBox.warning(self, 'Warning', 'Please select a team to delete.')
 

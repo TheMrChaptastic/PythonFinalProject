@@ -6,10 +6,10 @@ from Widgets.league_editor import LeagueEditor
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, repository):
         super().__init__()
         self.setWindowTitle('Chappy\'s Curling League Manager')
-        self.leagues = []
+        self.repo = repository
         self.current_league_index = -1
 
         self.league_list = QListWidget()
@@ -59,8 +59,12 @@ class MainWindow(QMainWindow):
         file_dialog.setNameFilter('Text files (*.txt)')
         if file_dialog.exec_():
             file_path = file_dialog.selectedFiles()[0]
-            # Load file logic here
-            QMessageBox.information(self, 'Message', f'Loaded file: {file_path}')
+            success = self.repo.load_league(file_path)
+            if success:
+                QMessageBox.information(self, 'Message', f'Loaded file: {file_path}')
+                self.update_league()
+            else:
+                QMessageBox.information(self, 'Message', f'Failed to load file: {file_path}')
 
     def save_file(self):
         file_dialog = QFileDialog(self)
@@ -68,20 +72,32 @@ class MainWindow(QMainWindow):
         file_dialog.setNameFilter('Text files (*.txt)')
         if file_dialog.exec_():
             file_path = file_dialog.selectedFiles()[0]
-            # Save file logic here
-            QMessageBox.information(self, 'Message', f'Saved file: {file_path}')
+            success = self.repo.save_league(file_path)
+            if success:
+                QMessageBox.information(self, 'Message', f'Saved file: {file_path}')
+            else:
+                QMessageBox.information(self, 'Message', f'Failed to save file.')
+
+    def update_league(self):
+        self.league_list.clear()
+        for leg in self.repo.leagues:
+            self.league_list.addItem(leg.name)
 
     def add_league(self):
         league_name, ok = QInputDialog.getText(self, 'Add League', 'Enter league name:')
         if ok and league_name:
             new_league = League(league_name)
-            self.leagues.append(new_league)
-            self.league_list.addItem(new_league.name)
+            success = self.repo.add_league(new_league)
+            if success:
+                self.league_list.addItem(new_league.name)
+            else:
+                QMessageBox.warning(self, 'Warning', 'Error saving changes.')
+
 
     def edit_league(self):
         if self.current_league_index != -1:
-            selected_league = self.leagues[self.current_league_index]
-            self.league_editor = LeagueEditor(selected_league)
+            selected_league = self.repo.leagues[self.current_league_index]
+            self.league_editor = LeagueEditor(selected_league, self.repo)
             self.league_editor.show()
         else:
             QMessageBox.warning(self, 'Warning', 'Please select a league to edit.')
@@ -91,9 +107,12 @@ class MainWindow(QMainWindow):
             reply = QMessageBox.question(self, 'Delete League', 'Are you sure you want to delete this league?',
                                          QMessageBox.Yes | QMessageBox.No)
             if reply == QMessageBox.Yes:
-                del self.leagues[self.current_league_index]
-                self.league_list.takeItem(self.current_league_index)
-                self.current_league_index = -1
+                success = self.repo.delete_league(self.repo.leagues[self.current_league_index])
+                if success:
+                    self.league_list.takeItem(self.current_league_index)
+                    self.current_league_index = -1
+                else:
+                    QMessageBox.warning(self, 'Warning', 'Error saving changes.')
         else:
             QMessageBox.warning(self, 'Warning', 'Please select a league to delete.')
 
