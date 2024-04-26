@@ -82,7 +82,7 @@ class TeamEditor(QWidget):
         if selected_item:
             success = self.repo.delete_member(self.league, self.team, self.team.members[self.current_member_index])
             if success:
-                self.member_list.takeItem(self.member_list.row(selected_item))
+                self.update_members_list()
             else:
                 QMessageBox.warning(self, 'Warning', 'Error saving changes.')
         else:
