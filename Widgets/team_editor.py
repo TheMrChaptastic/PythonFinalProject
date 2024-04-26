@@ -1,3 +1,4 @@
+import re
 from PyQt5.QtWidgets import QListWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QWidget, QLineEdit, QMessageBox
 
 from Exceptions.duplicate_email import DuplicateEmail
@@ -57,6 +58,10 @@ class TeamEditor(QWidget):
         name = self.name_line_edit.text().strip()
         email = self.email_line_edit.text().strip()
         if name and email:
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if re.match(pattern, email) is None:
+                QMessageBox.warning(self, 'Warning', 'Please enter a valid email address \'_____@____.___\'.')
+                return
             try:
                 success = self.repo.add_member(self.league, self.team, TeamMember(name, email))
                 if success:
@@ -89,6 +94,10 @@ class TeamEditor(QWidget):
             name = self.name_line_edit.text().strip()
             email = self.email_line_edit.text().strip()
             if name and email:
+                pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                if re.match(pattern, email) is None:
+                    QMessageBox.warning(self, 'Warning', 'Please enter a valid email address \'_____@____.___\'.')
+                    return
                 self.team.members[self.current_member_index].name = name
                 self.team.members[self.current_member_index].email = email
                 try:
