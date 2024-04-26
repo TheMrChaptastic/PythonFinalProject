@@ -1,3 +1,6 @@
+import pickle
+
+
 class LeagueRepo:
     def __init__(self):
         self.leagues = []
@@ -100,7 +103,17 @@ class LeagueRepo:
         return []
 
     def load_repo(self, path):
-        return None
+        try:
+            with open(path, 'rb') as f:
+                self.leagues = pickle.load(f)
+            return True
+        except:
+            return False
 
     def save_repo(self, path):
-        return None
+        try:
+            with open(path, 'wb') as f:
+                pickle.dump(self.leagues, f)
+            return True
+        except:
+            return False

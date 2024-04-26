@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
         file_dialog.setNameFilter('Text files (*.txt)')
         if file_dialog.exec_():
             file_path = file_dialog.selectedFiles()[0]
-            success = self.repo.load_league(file_path)
+            success = self.repo.load_repo(file_path)
             if success:
                 QMessageBox.information(self, 'Message', f'Loaded file: {file_path}')
                 self.update_league()
@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         file_dialog.setNameFilter('Text files (*.txt)')
         if file_dialog.exec_():
             file_path = file_dialog.selectedFiles()[0]
-            success = self.repo.save_league(file_path)
+            success = self.repo.save_repo(file_path)
             if success:
                 QMessageBox.information(self, 'Message', f'Saved file: {file_path}')
             else:
