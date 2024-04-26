@@ -119,10 +119,16 @@ class MainWindow(QMainWindow):
                 if success:
                     self.league_list.takeItem(self.current_league_index)
                     self.current_league_index = -1
+                    self.update_league_list()
                 else:
                     QMessageBox.warning(self, 'Warning', 'Error saving changes.')
         else:
             QMessageBox.warning(self, 'Warning', 'Please select a league to delete.')
+
+    def update_league_list(self):
+        self.league_list.clear()
+        for league in self.repo.leagues:
+            self.league_list.addItem(league.name)
 
     def set_current_league(self, index):
         self.current_league_index = index
