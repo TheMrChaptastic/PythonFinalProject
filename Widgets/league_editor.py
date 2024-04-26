@@ -85,3 +85,8 @@ class LeagueEditor(QWidget):
 
     def set_current_team(self, index):
         self.current_team_index = index
+
+    def closeEvent(self, event):
+        if self.team_editor:
+            self.team_editor.close()
+        event.accept()

@@ -61,6 +61,8 @@ class MainWindow(QMainWindow):
             file_path = file_dialog.selectedFiles()[0]
             success = self.repo.load_repo(file_path)
             if success:
+                if self.league_editor:
+                    self.league_editor.close()
                 QMessageBox.information(self, 'Message', f'Loaded file: {file_path}')
                 self.update_league()
             else:
@@ -92,7 +94,6 @@ class MainWindow(QMainWindow):
                 self.league_list.addItem(new_league.name)
             else:
                 QMessageBox.warning(self, 'Warning', 'Error saving changes.')
-
 
     def edit_league(self):
         if self.current_league_index != -1:
